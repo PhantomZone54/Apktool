@@ -1,12 +1,16 @@
 name: CI
-on: [push]
+on:
+  push:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '0 1/6 * * *'
 
 jobs:
   build-and-test-with-Java-8-and-later:
     name: Build/Test (JDK ${{ matrix.java }}, ${{ matrix.os }})
     strategy:
-      fail-fast: false
-      max-parallel: 10
+      fail-fast: true
+      max-parallel: 7
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
         java: [8, 9, 10, 11, 12, 13, 14]
@@ -31,3 +35,8 @@ jobs:
       - name: Build and test
         run: ./gradlew build shadowJar proguard
         if: startsWith(matrix.os, 'windows') != true
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: apktool_snapshot.${{ matrix.os }}.jdk${{ matrix.java }}
+          path: ./brut.apktool/apktool-cli/build/libs/apktool-cli-all.jar
